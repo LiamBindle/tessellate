@@ -63,6 +63,7 @@ if __name__ == '__main__':
     out_dims, out_coords = load_dims_and_coords(args.grid_out, args.grid_out_cxy)
 
     out_dims = [f'{name}_out' for name in out_dims]
+    undo_renamed_out = {f'{name}_out': name for name in out_coords.keys()}
     out_coords = {f'{name}_out': value for name, value in out_coords.items()}
 
     ds.coords.update(out_coords)
@@ -77,7 +78,8 @@ if __name__ == '__main__':
         vectorize=True
     )
     ds = ds.unstack('ogrid')
-
+    ds = ds.rename(undo_renamed_out)
+    
     delayed_obj = ds.to_netcdf(args.o, compute=False)
     with ProgressBar():
         delayed_obj.compute()
