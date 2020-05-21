@@ -78,7 +78,7 @@ if __name__ == '__main__':
     )
     ds = ds.unstack('ogrid')
 
-    delayed_obj = ds.to_netcdf(args['o'], compute=False)
+    delayed_obj = ds.to_netcdf(args.o, compute=False)
     with ProgressBar():
         delayed_obj.compute()
 
