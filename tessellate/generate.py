@@ -63,7 +63,7 @@ def xeye_to_polygons(xe, ye, in_proj, out_proj):
         ye = np.array([ye])
     if len(xe) == 0:
         return np.array([])
-    xe, ye = pyproj.Transformer.from_crs(crs_from=in_proj, crs_to=out_proj).transform(xe, ye)
+    xe, ye = pyproj.Transformer.from_crs(crs_from=in_proj, crs_to=out_proj, always_xy=True).transform(xe, ye)
     xy = np.moveaxis([xe, ye], 0, -1)
     polygons = np.array([Polygon(outline) for outline in xy])
     return polygons
@@ -79,7 +79,7 @@ def xcyc_to_points(xc, yc, in_proj, out_proj):
     return polygons
 
 
-def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_start):
+def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_start, return_west_of_106W=False):
     # Check if input grids fall inside extent
     centers = xcyc_to_points(xc, yc, proj, proj_extent)
     inside = np.array([extent.contains(box_center) for box_center in centers])
@@ -91,9 +91,12 @@ def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_sta
 
     inside_indexes = inside_indexes[valid_boxes]
     boxes = boxes[valid_boxes]
+    west_of = np.array(west_of_106W)[valid_boxes]
 
     index_lut = {id(obox): idx for idx, obox in zip(inside_indexes, boxes)}
 
+    if return_west_of_106W:
+        return inside_indexes, boxes, index_lut, west_of
     return inside_indexes, boxes, index_lut
 
 
@@ -210,7 +213,7 @@ if __name__ == '__main__':
 
         for j in tqdm(range(np.ceil(size_in/chunksize).astype(int)), desc='input grid chunk'):
             in_chunk_start = j * chunksize
-            in_chunk_end = min(size_in-1, (j+1)*chunksize)
+            in_chunk_end = min(size_in, (j+1)*chunksize)
 
             xc_in = xc_in_total.isel(flat=range(in_chunk_start, in_chunk_end)).values
             yc_in = yc_in_total.isel(flat=range(in_chunk_start, in_chunk_end)).values
