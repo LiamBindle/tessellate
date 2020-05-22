@@ -79,7 +79,7 @@ def xcyc_to_points(xc, yc, in_proj, out_proj):
     return polygons
 
 
-def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_start, return_west_of_106W=False):
+def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_start):
     # Check if input grids fall inside extent
     centers = xcyc_to_points(xc, yc, proj, proj_extent)
     inside = np.array([extent.contains(box_center) for box_center in centers])
@@ -91,12 +91,8 @@ def keep_in_extent(xc, yc, xe, ye, proj, extent, proj_extent, ea_proj, chunk_sta
 
     inside_indexes = inside_indexes[valid_boxes]
     boxes = boxes[valid_boxes]
-    west_of = np.array(west_of_106W)[valid_boxes]
 
     index_lut = {id(obox): idx for idx, obox in zip(inside_indexes, boxes)}
-
-    if return_west_of_106W:
-        return inside_indexes, boxes, index_lut, west_of
     return inside_indexes, boxes, index_lut
 
 
