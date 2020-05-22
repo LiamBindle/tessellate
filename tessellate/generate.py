@@ -141,6 +141,8 @@ if __name__ == '__main__':
                         type=str,
                         default='epsg:2163',
                         required=False)
+    parser.add_argument('--weight_by_ibox',
+                        action='store_true')
     parser.add_argument('-o',
                         type=str,
                         required=True)
@@ -186,8 +188,12 @@ if __name__ == '__main__':
 
     M = []
 
-    def weighting_function(ogrid_box, igrid_box):
-        return ogrid_box.intersection(igrid_box).area/ogrid_box.area
+    if args.weight_by_ibox:
+        def weighting_function(ogrid_box, igrid_box):
+            return ogrid_box.intersection(igrid_box).area/igrid_box.area
+    else:
+        def weighting_function(ogrid_box, igrid_box):
+            return ogrid_box.intersection(igrid_box).area/ogrid_box.area
 
     for i in tqdm(range(np.ceil(size_out/chunksize).astype(int)), desc='output grid chunk'):
         out_chunk_start = i * chunksize
