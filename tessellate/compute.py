@@ -1,5 +1,6 @@
 import argparse
 
+import numpy as np
 import xarray as xr
 from scipy.sparse import load_npz
 from dask.diagnostics import ProgressBar
@@ -77,9 +78,16 @@ if __name__ == '__main__':
         output_core_dims=[['ogrid']],
         vectorize=True
     )
+
+    mask = np.ones((ds.ogrid.size,))
+    masked_rows = np.array(M.sum(axis=1)).squeeze() == 0.0
+    mask[masked_rows] = np.nan
+
+    ds = ds * xr.DataArray(mask, dims='ogrid')
+
     ds = ds.unstack('ogrid')
     ds = ds.rename(undo_renamed_out)
-    
+
     delayed_obj = ds.to_netcdf(args.o, compute=False)
     with ProgressBar():
         delayed_obj.compute()
